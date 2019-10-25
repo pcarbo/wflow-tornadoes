@@ -1,7 +1,7 @@
-name: "wflow-tornadoes"
+name: wflow-tornadoes
 output_dir: ../docs
 navbar:
-  title: "wflow-tornadoes"
+  title: wflow-tornadoes
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/pcarbo/wflow-tornadoes
 output:
   workflowr::wflow_html:
     toc: yes
