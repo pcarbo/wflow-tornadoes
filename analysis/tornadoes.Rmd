@@ -1,0 +1,83 @@
+---
+title: Analysis of 2018 tornado data from NOAA
+date: October 23, 2019
+author: Peter Carbonetto
+output:
+  html_document:
+    theme: readable 
+---
+
+This is my analysis of tornado data downloaded from the
+[NOAA website][noaa-storm-events].
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",fig.height = 5,fig.width = 9)
+```
+
+# Load packages
+
+Load the packages used for the analysis.
+
+```{r load-pkgs, message=FALSE, warning=FALSE}
+library(readr)
+library(ggplot2)
+library(cowplot)
+```
+
+# Load tornado data
+
+Load the 2018 storm event data from the CSV file. The output should be
+a data frame with 62,339 rows and 51 columns.
+
+```{r load-data, message=FALSE, warning=FALSE}
+storms <- read_csv("StormEvents_details-ftp_v1.0_d2018_c20190817.csv.gz")
+class(storms) <- "data.frame"
+nrow(storms)
+ncol(storms)
+```
+
+Here we focus on events classified as tornadoes. There should be 1,250
+weather events that are tornadoes.
+
+```{r get-tornado-data}
+tornadoes <- subset(storms,EVENT_TYPE == "Tornado")
+nrow(tornadoes)
+```
+
+The tornadoes are categorized by a severity scale, with "EF3" being
+the most severe. Only a small number (12) of the tornadoes 2018 were
+classified as EF3.
+
+```{r summarize-f-scale}
+tornadoes <- transform(tornadoes,TOR_F_SCALE = factor(TOR_F_SCALE))
+summary(tornadoes$TOR_F_SCALE)
+```
+
+# Plot geographic distribution of tornadoes
+
+Using the geographic data provided (the latitudes and longitudes),
+create a map showing the location of all tornado events that occurred
+in 2018. Color the tornadoes by severity to highlight the most severe
+tornadoes (shown in orange and magenta).
+
+```{r plot-tornadoes}
+rows      <- order(tornadoes$TOR_F_SCALE)
+tornadoes <- tornadoes[rows,]
+ggplot(tornadoes,aes(x = BEGIN_LON,y = BEGIN_LAT,color = TOR_F_SCALE)) +
+  geom_path(data = map_data("state"),aes(x = long,y = lat,group = group),
+            color = "black") +
+  geom_point(shape = 20,size = 4) +
+  scale_color_manual(values = c("lightskyblue","skyblue","darkorange",
+                                "magenta","gray")) +
+  labs(x = "longitude",y = "latitude")
+```
+
+As expected, the greatest concentration of severe tornadoes is in
+Midwestern states such as Kansas and Mississippi. There is also a
+quite large cluster of severe tornadoes in and around upper
+Louisiana. Indeed, there was a ["tornado outbreak" that occurred in
+Louisiana in April 2018][tornado-outbreak].
+
+[noaa-storm-events]: https://www.ncdc.noaa.gov/stormevents/ftp.jsp
+[tornado-outbreak]: https://en.wikipedia.org/wiki/Tornado_outbreak_of_April_13%E2%80%9315,_2018
